@@ -3,3 +3,8 @@ node_modules/
 *.log
 coverage/
 .qa/
+.venv/
+__pycache__/
+*.py[cod]
+*.egg-info/
+outputs/

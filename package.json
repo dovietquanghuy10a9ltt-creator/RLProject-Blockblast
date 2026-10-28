@@ -8,7 +8,7 @@
     "dev": "node server.js",
     "start": "node server.js",
     "test": "node --test tests/*.test.js",
-    "check": "node --check src/main.js && node --check src/engine.js && node --check src/audio.js && node --check src/storage.js && node --check src/drag.js && node --check src/effects.js && node --check src/renderer3d.js && node --check server.js",
+    "check": "node --check src/main.js && node --check src/engine.js && node --check src/block-config.js && node --check src/audio.js && node --check src/storage.js && node --check src/drag.js && node --check src/effects.js && node --check src/renderer3d.js && node --check rl/session.js && node --check rl/bridge.mjs && node --check server.js",
     "test:browser": "node tests/browser-regression.mjs"
   },
   "engines": { "node": ">=20" }

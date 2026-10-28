@@ -1,4 +1,7 @@
-import { BOARD_SIZE, hasAnyMove, isValidBoard, isValidPiece } from './engine.js';
+import { BOARD_SIZE, hasAnyMove, isValidBoard, isValidPiece, resolveBlockConfig } from './engine.js';
+
+const blockConfig = resolveBlockConfig();
+const enabledShapes = new Set(blockConfig.definitions.map((definition) => definition.id));
 
 export const DEFAULT_SETTINGS = Object.freeze({ sound: true, effects: true, threeD: true, volume: 0.65 });
 
@@ -41,8 +44,8 @@ function settingsFrom(value) {
 
 /** Accept only a settled, self-consistent game, then copy known fields. */
 function gameFrom(value) {
-  if (!record(value) || !isValidBoard(value.board) || !Array.isArray(value.hand) || value.hand.length !== 3) return null;
-  if (!Array.from(value.hand).every((piece) => piece === null || isValidPiece(piece))) return null;
+  if (!record(value) || !isValidBoard(value.board) || !Array.isArray(value.hand) || value.hand.length !== blockConfig.handSize) return null;
+  if (!Array.from(value.hand).every((piece) => piece === null || (isValidPiece(piece) && enabledShapes.has(piece.shapeId)))) return null;
   const remainingPieces = value.hand.filter((piece) => piece !== null);
   if (remainingPieces.length === 0 || new Set(remainingPieces.map((piece) => piece.id)).size !== remainingPieces.length) return null;
 

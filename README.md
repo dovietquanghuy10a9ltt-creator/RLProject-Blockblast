@@ -1,5 +1,16 @@
 # Block Nova
 
+## Gymnasium và huấn luyện RL
+
+Đã có môi trường `BlockNova-v0` dùng trực tiếp luật JavaScript của game, action masking, seed tái lập, lệnh chạy thử, huấn luyện MaskablePPO và đánh giá so với random. Xem **[hướng dẫn RL](RL_GUIDE.md)** để chạy và hiểu cách phát khối.
+
+Hiện có **30 loại hình khối**, **6 màu** (không ảnh hưởng luật), mặc định **3 khối mỗi bộ**. Sửa **[`src/block-config.js`](src/block-config.js)** để đổi số loại (`shapeCount`), chọn chính xác hình (`enabledShapeIds`), đổi trọng số (`shapeWeights`) và số khối mỗi bộ (`handSize`, 1–9). Các môi trường mới và game trình duyệt dùng cùng cấu hình này.
+
+```powershell
+.\.venv\Scripts\python.exe -m blocknova_rl.smoke --list-shapes
+.\.venv\Scripts\python.exe -m blocknova_rl.train --steps 100000 --output outputs/ppo-full
+```
+
 Game xếp khối 8×8 lấy cảm hứng từ lối chơi Block Blast, với thiết kế riêng: nền arcade tối, khối màu có chiều sâu, bóng xem trước vị trí đặt, hạt sáng khi phá hàng và âm thanh tổng hợp. Không sử dụng hình ảnh hay mã nguồn của Block Blast.
 
 ## Bản nâng cấp 1.1

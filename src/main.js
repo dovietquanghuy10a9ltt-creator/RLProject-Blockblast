@@ -41,7 +41,8 @@ let effects = null;
 
 function freshGame() {
   const board = createBoard();
-  return { board, hand: generateHand(board), score: 0, moves: 0, lines: 0, combo: 0, bestCombo: 0, elapsed: 0, over: false };
+  const hand = generateHand(board);
+  return { board, hand, score: 0, moves: 0, lines: 0, combo: 0, bestCombo: 0, elapsed: 0, over: !hasAnyMove(board, hand) };
 }
 
 function persist() {
@@ -116,6 +117,8 @@ function buildShape(piece, ghost = false) {
 
 function renderTray(newHand = false) {
   trayElement.replaceChildren();
+  trayElement.style.gridTemplateColumns = `repeat(${Math.min(state.hand.length, 3)}, minmax(0, 1fr))`;
+  trayElement.setAttribute('aria-label', `Chọn một trong ${state.hand.length} khối`);
   state.hand.forEach((piece, index) => {
     const slot = document.createElement('button');
     slot.type = 'button';
@@ -145,7 +148,7 @@ function renderTray(newHand = false) {
     trayElement.appendChild(slot);
   });
   updateSelection();
-  $('hand-count').textContent = `${state.hand.filter(Boolean).length} / 3`;
+  $('hand-count').textContent = `${state.hand.filter(Boolean).length} / ${state.hand.length}`;
 }
 
 function updateSelection() {
@@ -504,7 +507,7 @@ boardElement.addEventListener('click', (event) => {
 window.addEventListener('keydown', (event) => {
   if (dialog.open || event.ctrlKey || event.metaKey || event.altKey || /INPUT|TEXTAREA|SELECT/.test(event.target.tagName)) return;
   if (drag && event.key !== 'Escape') return;
-  if (['1', '2', '3'].includes(event.key)) {
+  if (/^[1-9]$/.test(event.key) && Number(event.key) <= state.hand.length) {
     event.preventDefault(); audio.unlock(); selectPiece(Number(event.key) - 1, true); return;
   }
   if (event.key === 'Escape') { cancelSelection(); return; }
@@ -570,7 +573,7 @@ function showCatalog() {
 }
 
 function showHelp() {
-  openDialog(`${emblem('sparkle')}<h2 id="dialog-title">Vào nhịp trong tích tắc.</h2><p class="dialog-description">Một bảng trống. Ba khối màu.<br>Bạn sẽ đi được bao xa?</p><div class="dialog-steps"><div class="dialog-step"><span class="step-number">01</span><div><b>Chọn và xếp khối</b>Kéo một khối vào bảng. Bạn cũng có thể chạm khối rồi chạm vị trí đặt góc trên bên trái. Khối giữ nguyên hướng.</div></div><div class="dialog-step"><span class="step-number">02</span><div><b>Lấp đầy hàng hoặc cột</b>Mỗi ô đặt xuống được 10 điểm. Hàng hoặc cột đầy sẽ biến mất, cộng 100 điểm × combo cho mỗi hàng.</div></div><div class="dialog-step"><span class="step-number">03</span><div><b>Giữ chuỗi, phá kỷ lục</b>Phá hàng ở các lượt đặt liên tiếp để tăng combo. Đặt hết ba khối để nhận bộ mới. Ván kết thúc khi không khối còn lại nào vừa bảng.</div></div></div><div class="dialog-shortcuts">1 / 2 / 3: chọn khối · Phím mũi tên: di chuyển<br>Enter: đặt · Esc: bỏ chọn · M: âm thanh · N: ván mới</div><div style="display:flex;gap:10px;margin-top:14px"><button class="dialog-primary" id="help-done" style="flex:1">Chơi thôi <svg><use href="#i-arrow" /></svg></button><button class="dialog-secondary" id="help-catalog">Xem 18 khối</button></div>`);
+  openDialog(`${emblem('sparkle')}<h2 id="dialog-title">Vào nhịp trong tích tắc.</h2><p class="dialog-description">Một bảng trống. Các khối màu.<br>Bạn sẽ đi được bao xa?</p><div class="dialog-steps"><div class="dialog-step"><span class="step-number">01</span><div><b>Chọn và xếp khối</b>Kéo một khối vào bảng. Bạn cũng có thể chạm khối rồi chạm vị trí đặt góc trên bên trái. Khối giữ nguyên hướng.</div></div><div class="dialog-step"><span class="step-number">02</span><div><b>Lấp đầy hàng hoặc cột</b>Mỗi ô đặt xuống được 10 điểm. Hàng hoặc cột đầy sẽ biến mất, cộng 100 điểm × combo cho mỗi hàng.</div></div><div class="dialog-step"><span class="step-number">03</span><div><b>Giữ chuỗi, phá kỷ lục</b>Phá hàng ở các lượt đặt liên tiếp để tăng combo. Đặt hết các khối để nhận bộ mới. Ván kết thúc khi không khối còn lại nào vừa bảng.</div></div></div><div class="dialog-shortcuts">Phím số: chọn khối · Phím mũi tên: di chuyển<br>Enter: đặt · Esc: bỏ chọn · M: âm thanh · N: ván mới</div><div style="display:flex;gap:10px;margin-top:14px"><button class="dialog-primary" id="help-done" style="flex:1">Chơi thôi <svg><use href="#i-arrow" /></svg></button><button class="dialog-secondary" id="help-catalog">Xem 18 khối</button></div>`);
   $('help-done').addEventListener('click', () => dialog.close());
   $('help-catalog').addEventListener('click', showCatalog);
 }
@@ -595,7 +598,7 @@ function startNewGame() {
   cursor = { row: 0, col: 0 };
   renderBoard(); renderTray(true); renderStats(); persist();
   audio.unlock().then(() => audio.play('newgame'));
-  announce('Ván mới đã bắt đầu. Chọn một trong ba khối để chơi.');
+  announce('Ván mới đã bắt đầu. Chọn một khối trong khay để chơi.');
 }
 function showGameOver() {
   if (!state.over) return;
