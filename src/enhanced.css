@@ -106,3 +106,18 @@ h1>span { background:linear-gradient(105deg,#c59bff,#a196ff 65%,#84d9e4);backgro
 @media(prefers-reduced-motion:reduce) { .ambient{animation:none}.cell.placed,.cell.clearing,.piece-slot.new-hand .piece-shape{animation:none}.board-message.show{animation:none;opacity:1} }
 body.reduce-motion .ambient,body.reduce-motion .cell.placed,body.reduce-motion .cell.clearing,body.reduce-motion .piece-slot.new-hand .piece-shape { animation:none; }
 body.reduce-motion .board-message.show { animation:none;opacity:1; }
+
+/* Catalog 18 Khối Modal */
+.catalog-content { max-height:65vh;overflow-y:auto;padding-right:6px;margin:12px 0 16px;display:flex;flex-direction:column;gap:14px; }
+.catalog-content::-webkit-scrollbar { width:5px; }
+.catalog-content::-webkit-scrollbar-thumb { background:#78589c55;border-radius:4px; }
+.catalog-group { background:#16132566;border:1px solid #634b7933;border-radius:14px;padding:10px 12px; }
+.catalog-group-title { font-size:12.5px;font-weight:700;color:#dfcbff;margin-bottom:8px;display:flex;align-items:center;justify-content:space-between;letter-spacing:.3px; }
+.catalog-group-badge { font-size:10px;font-weight:600;padding:2px 8px;border-radius:999px;background:#653a8f33;border:1px solid #ab75d944;color:#d5b3ff; }
+.catalog-grid { display:grid;grid-template-columns:repeat(auto-fill,minmax(96px,1fr));gap:8px; }
+.catalog-card { background:linear-gradient(145deg,#231c33,#131627);border:1px solid #6f578740;border-radius:11px;padding:8px 5px;display:flex;flex-direction:column;align-items:center;gap:6px;text-align:center;box-shadow:inset 0 1px #d6beff09,0 3px 8px #0003; }
+.catalog-card:hover { border-color:#b485e588;background:#29203a; }
+.catalog-card-shape { min-height:46px;display:flex;align-items:center;justify-content:center; }
+.catalog-card-shape .piece-shape { transform:scale(.62);transform-origin:center center;filter:drop-shadow(0 3px 4px #0006); }
+.catalog-card-name { font-size:11px;font-weight:600;color:#ede5f8;line-height:1.2; }
+.catalog-card-size { font-size:9.5px;color:#a395b4; }

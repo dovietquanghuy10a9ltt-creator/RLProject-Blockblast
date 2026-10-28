@@ -534,9 +534,45 @@ function openDialog(html) {
   updateKeyboardMarker();
 }
 function emblem(icon) { return `<div class="dialog-emblem"><svg aria-hidden="true"><use href="#i-${icon}" /></svg></div>`; }
+const SHAPE_CATEGORIES = [
+  { name: '1. Ô và thanh', ids: ['single', 'domino-h', 'domino-v', 'line3-h', 'line3-v', 'line4-h', 'line4-v'] },
+  { name: '2. Vuông & Chữ nhật', ids: ['square2', 'square3'] },
+  { name: '3. Khối góc', ids: ['corner-nw', 'corner-se'] },
+  { name: '4. Khối chữ L', ids: ['ell-se', 'ell-sw'] },
+  { name: '5. Khối chữ T', ids: ['tee-down', 'tee-up'] },
+  { name: '6. Khối zích zắc', ids: ['zigzag-h', 'zagzig-h'] },
+  { name: '7. Khối đặc biệt', ids: ['big-corner'] },
+];
+
+function showCatalog() {
+  const categoryColors = ['cyan', 'amber', 'mint', 'blue', 'pink', 'violet', 'amber'];
+  let html = `${emblem('sparkle')}<h2 id="dialog-title">Danh Mục 18 Khối</h2><p class="dialog-description">18 khối chuẩn cân bằng cho bàn cờ 8×8 (đủ 7 thể loại hình khối).</p><div class="catalog-content">`;
+  SHAPE_CATEGORIES.forEach((cat, catIdx) => {
+    const color = categoryColors[catIdx % categoryColors.length];
+    html += `<div class="catalog-group"><div class="catalog-group-title"><span>${cat.name}</span><span class="catalog-group-badge">${cat.ids.length} khối</span></div><div class="catalog-grid">`;
+    cat.ids.forEach((shapeId) => {
+      const def = SHAPES.find((s) => s.id === shapeId);
+      if (!def) return;
+      html += `<div class="catalog-card"><div class="catalog-card-shape" data-shape="${def.id}" data-color="${color}"></div><div class="catalog-card-name">${def.name}</div><div class="catalog-card-size">${def.cells.length} ô</div></div>`;
+    });
+    html += `</div></div>`;
+  });
+  html += `</div><button class="dialog-primary" id="catalog-done">Quay lại chơi</button>`;
+  openDialog(html);
+
+  document.querySelectorAll('.catalog-card-shape').forEach((container) => {
+    const shapeId = container.dataset.shape;
+    const color = container.dataset.color || 'violet';
+    const def = SHAPES.find((s) => s.id === shapeId);
+    if (def) container.appendChild(buildShape({ cells: def.cells, color }));
+  });
+  $('catalog-done').addEventListener('click', () => dialog.close());
+}
+
 function showHelp() {
-  openDialog(`${emblem('sparkle')}<h2 id="dialog-title">Vào nhịp trong tích tắc.</h2><p class="dialog-description">Một bảng trống. Ba khối màu.<br>Bạn sẽ đi được bao xa?</p><div class="dialog-steps"><div class="dialog-step"><span class="step-number">01</span><div><b>Chọn và xếp khối</b>Kéo một khối vào bảng. Bạn cũng có thể chạm khối rồi chạm vị trí đặt góc trên bên trái. Khối giữ nguyên hướng.</div></div><div class="dialog-step"><span class="step-number">02</span><div><b>Lấp đầy hàng hoặc cột</b>Mỗi ô đặt xuống được 10 điểm. Hàng hoặc cột đầy sẽ biến mất, cộng 100 điểm × combo cho mỗi hàng.</div></div><div class="dialog-step"><span class="step-number">03</span><div><b>Giữ chuỗi, phá kỷ lục</b>Phá hàng ở các lượt đặt liên tiếp để tăng combo. Đặt hết ba khối để nhận bộ mới. Ván kết thúc khi không khối còn lại nào vừa bảng.</div></div></div><div class="dialog-shortcuts">1 / 2 / 3: chọn khối · Phím mũi tên: di chuyển<br>Enter: đặt · Esc: bỏ chọn · M: âm thanh · N: ván mới</div><button class="dialog-primary" id="help-done">Hiểu rồi, chơi thôi <svg><use href="#i-arrow" /></svg></button>`);
+  openDialog(`${emblem('sparkle')}<h2 id="dialog-title">Vào nhịp trong tích tắc.</h2><p class="dialog-description">Một bảng trống. Ba khối màu.<br>Bạn sẽ đi được bao xa?</p><div class="dialog-steps"><div class="dialog-step"><span class="step-number">01</span><div><b>Chọn và xếp khối</b>Kéo một khối vào bảng. Bạn cũng có thể chạm khối rồi chạm vị trí đặt góc trên bên trái. Khối giữ nguyên hướng.</div></div><div class="dialog-step"><span class="step-number">02</span><div><b>Lấp đầy hàng hoặc cột</b>Mỗi ô đặt xuống được 10 điểm. Hàng hoặc cột đầy sẽ biến mất, cộng 100 điểm × combo cho mỗi hàng.</div></div><div class="dialog-step"><span class="step-number">03</span><div><b>Giữ chuỗi, phá kỷ lục</b>Phá hàng ở các lượt đặt liên tiếp để tăng combo. Đặt hết ba khối để nhận bộ mới. Ván kết thúc khi không khối còn lại nào vừa bảng.</div></div></div><div class="dialog-shortcuts">1 / 2 / 3: chọn khối · Phím mũi tên: di chuyển<br>Enter: đặt · Esc: bỏ chọn · M: âm thanh · N: ván mới</div><div style="display:flex;gap:10px;margin-top:14px"><button class="dialog-primary" id="help-done" style="flex:1">Chơi thôi <svg><use href="#i-arrow" /></svg></button><button class="dialog-secondary" id="help-catalog">Xem 18 khối</button></div>`);
   $('help-done').addEventListener('click', () => dialog.close());
+  $('help-catalog').addEventListener('click', showCatalog);
 }
 function requestNewGame() {
   if (busy) return;
@@ -611,6 +647,7 @@ function showSettings() {
 }
 
 $('sound-button').addEventListener('click', toggleSound);
+$('catalog-button')?.addEventListener('click', showCatalog);
 $('help-button').addEventListener('click', showHelp);
 $('settings-button').addEventListener('click', showSettings);
 $('new-game-button').addEventListener('click', requestNewGame);
