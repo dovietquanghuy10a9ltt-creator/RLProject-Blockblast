@@ -1,0 +1,16 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "blocknova-rl"
+version = "0.1.0"
+description = "Gymnasium environment using the Block Nova JavaScript engine"
+requires-python = ">=3.10"
+dependencies = ["gymnasium>=1.2,<2", "numpy>=1.26,<3"]
+
+[project.optional-dependencies]
+train = ["stable-baselines3>=2.7,<3", "sb3-contrib>=2.7,<3"]
+
+[tool.setuptools.packages.find]
+include = ["blocknova_rl*"]

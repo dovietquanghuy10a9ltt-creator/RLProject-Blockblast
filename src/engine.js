@@ -1,4 +1,5 @@
 /** Pure, immutable rules for the 8 × 8 block puzzle. */
+import { BLOCK_CONFIG } from './block-config.js';
 export const BOARD_SIZE = 8;
 export const COLORS = Object.freeze(['violet', 'cyan', 'blue', 'pink', 'amber', 'mint']);
 
@@ -40,6 +41,42 @@ export const SHAPES = Object.freeze([
   shape('zagzig-v', 'Chữ Z dọc', [[0, 1], [1, 0], [1, 1], [2, 0]]),
   shape('big-corner', 'Góc lớn', [[0, 0], [1, 0], [2, 0], [2, 1], [2, 2]]),
 ]);
+
+/** Validate configuration rather than silently introducing excluded shapes. */
+export function resolveBlockConfig(overrides = {}) {
+  const config = { ...BLOCK_CONFIG, ...overrides };
+  if (!Number.isInteger(config.handSize) || config.handSize < 1 || config.handSize > 9) {
+    throw new RangeError('handSize must be an integer from 1 to 9');
+  }
+  let definitions;
+  if (config.enabledShapeIds !== null) {
+    const ids = config.enabledShapeIds;
+    if (!Array.isArray(ids) || !ids.length || new Set(ids).size !== ids.length) {
+      throw new TypeError('enabledShapeIds must be a nonempty array of unique shape IDs');
+    }
+    definitions = ids.map((id) => {
+      const definition = SHAPES.find((candidate) => candidate.id === id);
+      if (!definition) throw new RangeError(`Unknown shape ID: ${id}`);
+      return definition;
+    });
+  } else {
+    const count = config.shapeCount ?? SHAPES.length;
+    if (!Number.isInteger(count) || count < 1 || count > SHAPES.length) {
+      throw new RangeError(`shapeCount must be an integer from 1 to ${SHAPES.length}, or null`);
+    }
+    definitions = SHAPES.slice(0, count);
+  }
+  if (!config.shapeWeights || typeof config.shapeWeights !== 'object' || Array.isArray(config.shapeWeights)) {
+    throw new TypeError('shapeWeights must be an object');
+  }
+  const shapeWeights = { ...config.shapeWeights };
+  for (const [id, weight] of Object.entries(shapeWeights)) {
+    if (!SHAPES.some((definition) => definition.id === id) || !Number.isFinite(weight) || weight <= 0) {
+      throw new RangeError(`Invalid positive weight for shape: ${id}`);
+    }
+  }
+  return { handSize: config.handSize, definitions, shapeWeights };
+}
 
 export function createBoard() {
   return Array.from({ length: BOARD_SIZE }, () => Array(BOARD_SIZE).fill(null));
@@ -141,12 +178,13 @@ function randomUnit(rng) {
   return Number.isFinite(value) ? Math.max(0, Math.min(0.999999999, value)) : 0.5;
 }
 
-function chooseWeighted(candidates, rng, chosenShapeIds, emptyCount) {
+function chooseWeighted(candidates, rng, chosenShapeIds, emptyCount, shapeWeights) {
   const weights = candidates.map(({ definition }) => {
     const count = definition.cells.length;
     let weight = count === 1 ? 0.25 : count === 2 ? 0.65 : 1;
     if (count >= 6 && emptyCount > 36) weight *= 1.6;
     if (chosenShapeIds.has(definition.id)) weight *= 0.35;
+    weight *= shapeWeights[definition.id] ?? 1;
     return weight;
   });
   let target = randomUnit(rng) * weights.reduce((total, weight) => total + weight, 0);
@@ -159,24 +197,26 @@ function chooseWeighted(candidates, rng, chosenShapeIds, emptyCount) {
 
 /**
  * Builds a hand along a simulated legal sequence. The returned order therefore
- * has at least one complete solution whenever the input board has an empty cell.
+ * has at least one complete solution with the default pool whenever the input
+ * board has an empty cell. Restricted pools can run out of fitting shapes.
  * Bounded scans also allow full boards and unusual random sources to return.
  */
-export function generateHand(board, rng = Math.random) {
+export function generateHand(board, rng = Math.random, config = {}) {
+  const { handSize, definitions, shapeWeights } = resolveBlockConfig(config);
   let simulation = isValidBoard(board) ? board.map((row) => [...row]) : createBoard();
   const random = typeof rng === 'function' ? rng : Math.random;
   const hand = [];
   const chosenShapeIds = new Set();
 
-  for (let slot = 0; slot < 3; slot += 1) {
+  for (let slot = 0; slot < handSize; slot += 1) {
     const emptyCount = simulation.flat().filter((cell) => cell === null).length;
-    const candidates = SHAPES.map((definition) => ({
+    const candidates = definitions.map((definition) => ({
       definition,
       placements: getValidPlacements(simulation, definition.cells),
     })).filter((candidate) => candidate.placements.length > 0);
     const selected = candidates.length > 0
-      ? chooseWeighted(candidates, random, chosenShapeIds, emptyCount)
-      : { definition: SHAPES[Math.floor(randomUnit(random) * SHAPES.length)], placements: [] };
+      ? chooseWeighted(candidates, random, chosenShapeIds, emptyCount, shapeWeights)
+      : { definition: definitions[Math.floor(randomUnit(random) * definitions.length)], placements: [] };
     const color = COLORS[Math.floor(randomUnit(random) * COLORS.length)];
     const piece = {
       id: `piece-${++pieceSequence}`,

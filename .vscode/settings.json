@@ -1,5 +1,6 @@
 {
   "liveServer.settings.port": 5500,
   "files.encoding": "utf8",
-  "editor.tabSize": 2
+  "editor.tabSize": 2,
+  "python.defaultInterpreterPath": "${workspaceFolder}/.venv/Scripts/python.exe"
 }

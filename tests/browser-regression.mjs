@@ -322,6 +322,36 @@ try {
     await assertPlaced(fractional, shape, 2, 2);
   }, fractional);
 
+  for (const handSize of [1, 2, 5, 9]) {
+    const context = await browser.newContext({ viewport: { width: 390, height: 844 } });
+    const configured = await context.newPage();
+    configured.on('pageerror', (error) => pageErrors.push(error.message));
+    await configured.route('**/src/block-config.js', (route) => route.fulfill({
+      contentType: 'text/javascript',
+      body: `export const BLOCK_CONFIG = { handSize: ${handSize}, shapeCount: 30, enabledShapeIds: ['single'], shapeWeights: {} };`,
+    }));
+    await run(`configured hand size ${handSize}: keyboard, layout and saved game`, async () => {
+      await configured.goto(baseURL);
+      await configured.locator('.piece-slot').first().waitFor();
+      assert.equal(await configured.locator('.piece-slot').count(), handSize);
+      assert.equal(await configured.locator('#hand-count').textContent(), `${handSize} / ${handSize}`);
+      await configured.keyboard.press(String(handSize));
+      assert.equal(await configured.locator('.piece-slot.selected').getAttribute('data-index'), String(handSize - 1));
+      await configured.keyboard.press('Enter');
+      await configured.waitForFunction(() => document.getElementById('moves-count').textContent === '1');
+      const bounds = await configured.locator('.piece-slot').evaluateAll((slots) => slots.map((slot) => {
+        const box = slot.getBoundingClientRect();
+        return { left: box.left, right: box.right, width: box.width };
+      }));
+      assert.ok(bounds.every((box) => box.left >= 0 && box.right <= 390 && box.width > 0));
+      await configured.reload();
+      await configured.locator('.piece-slot').first().waitFor();
+      assert.equal(await configured.locator('.piece-slot').count(), handSize);
+      assert.equal(await configured.locator('#moves-count').textContent(), '1');
+    }, configured);
+    await context.close();
+  }
+
   const actualErrors = pageErrors.filter((message) => !(retriedRendererImport && /Failed to fetch dynamically imported module: .*\/src\/renderer3d\.js/.test(message)));
   if (actualErrors.length) failures.push({ name: 'browser runtime errors', message: actualErrors.join('\n') });
   assert.deepEqual(failures, [], `${failures.length} browser regression(s) failed. Screenshots are in .qa/regression-*.png`);
