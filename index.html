@@ -1,0 +1,76 @@
+<!doctype html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="theme-color" content="#0c0d17" />
+  <meta name="description" content="Block Nova — game xếp khối 8×8 với hiệu ứng rực rỡ, combo và những kỷ lục mới. Chơi bằng chuột, cảm ứng hoặc bàn phím." />
+  <title>Block Nova — Xếp khối. Bùng nổ.</title>
+  <link rel="icon" href="./favicon.svg" type="image/svg+xml" />
+  <link rel="stylesheet" href="./src/styles.css" />
+  <link rel="stylesheet" href="./src/enhanced.css" />
+</head>
+<body>
+  <svg class="icon-defs" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><defs>
+    <symbol id="i-sound" viewBox="0 0 24 24"><path d="m11 5-6 4H2v6h3l6 4V5Z"/><path d="M15 8a6 6 0 0 1 0 8m3-11a10 10 0 0 1 0 14"/></symbol>
+    <symbol id="i-muted" viewBox="0 0 24 24"><path d="m11 5-6 4H2v6h3l6 4V5Z"/><path d="m16 9 6 6m0-6-6 6"/></symbol>
+    <symbol id="i-help" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M9.5 9a2.5 2.5 0 1 1 4 2c-1 .7-1.5 1-1.5 2M12 16h.01"/></symbol>
+    <symbol id="i-settings" viewBox="0 0 24 24"><path d="M4 7h9m4 0h3M4 17h3m4 0h9"/><circle cx="15" cy="7" r="2"/><circle cx="9" cy="17" r="2"/></symbol>
+    <symbol id="i-trophy" viewBox="0 0 24 24"><path d="M8 3h8v7a4 4 0 0 1-8 0V3Zm0 2H4v3a4 4 0 0 0 4 4m8-7h4v3a4 4 0 0 1-4 4m-4 2v6m-4 0h8"/></symbol>
+    <symbol id="i-arrow" viewBox="0 0 24 24"><path d="M4 12h16m-6-6 6 6-6 6"/></symbol>
+    <symbol id="i-restart" viewBox="0 0 24 24"><path d="M3 10a9 9 0 1 1 1 7M3 4v6h6"/></symbol>
+    <symbol id="i-bolt" viewBox="0 0 24 24"><path d="m13 2-9 12h7l-1 8 10-13h-7l1-7Z"/></symbol>
+    <symbol id="i-close" viewBox="0 0 24 24"><path d="m6 6 12 12M6 18 18 6"/></symbol>
+    <symbol id="i-sparkle" viewBox="0 0 24 24"><path d="m12 3 2.5 6.5L21 12l-6.5 2.5L12 21l-2.5-6.5L3 12l6.5-2.5L12 3Z"/></symbol>
+    <symbol id="i-check" viewBox="0 0 24 24"><path d="m5 12 4 4L19 6"/></symbol>
+    <symbol id="i-clock" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></symbol>
+  </defs></svg>
+  <div class="ambient ambient-one" aria-hidden="true"></div>
+  <div class="ambient ambient-two" aria-hidden="true"></div>
+  <div class="app-shell">
+    <header class="topbar">
+      <a class="brand" href="./" aria-label="Block Nova — Trang chơi"><span class="brand-mark" aria-hidden="true"><i></i><i></i><i></i><i></i></span><span>BLOCK<span class="brand-light">NOVA</span><small>THE BLOCK PUZZLE</small></span></a>
+      <div class="topbar-center"><span class="live-dot"></span> Một chút tập trung. Một chút thư giãn.</div>
+      <div class="top-actions">
+        <button class="icon-button" id="sound-button" title="Tắt âm thanh" aria-label="Tắt âm thanh" aria-pressed="true"><svg><use href="#i-sound" /></svg></button>
+        <button class="icon-button" id="help-button" title="Cách chơi" aria-label="Cách chơi"><svg><use href="#i-help" /></svg></button>
+        <button class="icon-button" id="settings-button" title="Cài đặt" aria-label="Cài đặt"><svg><use href="#i-settings" /></svg></button>
+      </div>
+    </header>
+    <main>
+      <div class="page-heading"><div><div class="eyebrow"><span></span> KHÔNG VỘI. CỨ CHƠI.</div><h1>Xếp khối. <span>Bùng nổ.</span></h1></div><div class="mode-pill"><span class="mode-icon">▦</span> Cổ điển <span class="pill-divider"></span><span class="mode-size">8 × 8</span><span class="render-badge" id="render-badge" data-mode="2d">2D</span></div></div>
+      <div class="game-layout">
+        <aside class="left-sidebar">
+          <section class="record-card"><div class="section-label"><svg><use href="#i-trophy" /></svg> KỶ LỤC CỦA BẠN</div><div class="record-value" id="best-score">0</div><div class="record-caption" id="record-caption">Kỷ lục mới đang chờ bạn</div><div class="record-decoration" aria-hidden="true">✦</div></section>
+          <section class="stats-card"><h2>Ván chơi của bạn <span class="status-dot"></span></h2><div class="stat-row"><span>Khối đã đặt</span><strong id="moves-count">0</strong></div><div class="stat-row"><span>Hàng đã phá</span><strong id="lines-count">0</strong></div><div class="stat-row"><span>Combo cao nhất</span><strong class="violet-text" id="best-combo">×0</strong></div><div class="session-time"><svg><use href="#i-clock" /></svg><span id="session-time">00:00</span><span>Không giới hạn thời gian</span></div></section>
+          <section class="milestone-card"><div class="milestone-title"><span class="milestone-star"><svg><use href="#i-sparkle" /></svg></span><div><h2>Chạm mốc đầu tiên</h2><p id="milestone-description">Mỗi khối đều có giá trị.</p></div></div><div class="milestone-progress" role="progressbar" aria-label="Tiến độ cột mốc điểm" aria-valuemin="0" aria-valuemax="1000" aria-valuenow="0"><span id="milestone-fill"></span></div><div class="milestone-numbers"><span id="milestone-current">0</span><span id="milestone-target">1.000 điểm</span></div></section>
+          <div class="calm-note"><span>✧</span><p>Không đếm ngược.<br>Chỉ có nước đi tiếp theo.</p></div>
+        </aside>
+        <section class="play-column" aria-label="Khu vực chơi">
+          <div class="scorebar"><div><div class="score-label">ĐIỂM CỦA BẠN</div><div class="score-value" id="score">0</div></div><div class="combo-badge" id="combo-badge"><svg><use href="#i-bolt" /></svg><div><strong id="combo-value">Sẵn sàng!</strong><span id="combo-caption">Tạo chuỗi, nhân điểm</span></div></div></div>
+          <div class="board-frame" id="board-frame"><div class="board" id="board" role="grid" aria-label="Bàn xếp khối 8 hàng, 8 cột. Chọn khối rồi chọn ô để đặt." aria-rowcount="8" aria-colcount="8"></div><div class="board-message" id="board-message" aria-hidden="true"></div></div>
+          <div class="tray-heading"><span><span class="tiny-dot"></span> KHỐI TIẾP THEO</span><span id="hand-count">3 / 3</span></div>
+          <div class="piece-tray" id="piece-tray" aria-label="Chọn một trong ba khối"></div>
+          <p class="play-hint" id="play-hint"><span class="mouse-icon" aria-hidden="true"></span>Kéo khối vào bảng, hoặc chạm để chọn và đặt</p>
+          <div class="mobile-stats"><span><svg><use href="#i-trophy" /></svg> <strong id="mobile-best">0</strong></span><span><b id="mobile-lines">0</b> hàng đã phá</span><button id="mobile-restart"><svg><use href="#i-restart" /></svg> Ván mới</button></div>
+        </section>
+        <aside class="right-sidebar">
+          <section class="howto-card"><div class="section-label"><span class="small-sparkle">✧</span> CHƠI THẬT ĐƠN GIẢN</div><div class="howto-step"><span class="step-number">01</span><div><h3>Tìm một vị trí</h3><p>Kéo một khối bất kỳ vào ô trống trên bảng.</p></div></div><div class="howto-step"><span class="step-number">02</span><div><h3>Lấp đầy. Phá hàng.</h3><p>Hoàn thành hàng ngang hoặc cột dọc để ghi điểm.</p></div></div><div class="clear-illustration" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><span>✦</span></div><div class="howto-step"><span class="step-number">03</span><div><h3>Nối tiếp bùng nổ</h3><p>Phá hàng liên tiếp để tăng combo và nhân điểm!</p></div></div></section>
+          <section class="tip-card"><span class="tip-icon"><svg><use href="#i-bolt" /></svg></span><div><h3>Mẹo nhỏ, điểm lớn</h3><p>Đừng quên chừa chỗ cho những khối lớn nhé.</p></div></section>
+          <button class="new-game-button" id="new-game-button"><svg><use href="#i-restart" /></svg> Bắt đầu ván mới <svg class="button-arrow"><use href="#i-arrow" /></svg></button>
+          <p class="save-note"><span class="live-dot"></span> Tự động lưu trên thiết bị</p>
+        </aside>
+      </div>
+    </main>
+    <footer><span>MADE FOR YOUR NEXT HIGH SCORE<span class="footer-sparkle">✦</span></span><span class="keyboard-note"><kbd>1</kbd><kbd>2</kbd><kbd>3</kbd> chọn khối <span>·</span><kbd>↑↓←→</kbd> di chuyển <span>·</span><kbd>Enter</kbd> đặt</span><span class="footer-version">BLOCK NOVA <span>© 2026</span></span></footer>
+  </div>
+  <canvas id="blocks-3d" aria-hidden="true"></canvas>
+  <canvas id="particles" aria-hidden="true"></canvas>
+  <div id="drag-ghost" class="drag-ghost" aria-hidden="true"></div>
+  <div id="toast" class="toast" role="status"></div>
+  <p class="sr-only" id="announcer" aria-live="polite" aria-atomic="true"></p>
+  <dialog id="game-dialog" class="game-dialog" aria-labelledby="dialog-title"><button class="dialog-close icon-button" id="dialog-close" aria-label="Đóng"><svg><use href="#i-close" /></svg></button><div id="dialog-content"></div></dialog>
+  <noscript><div class="noscript">Vui lòng bật JavaScript trong trình duyệt để chơi Block Nova.</div></noscript>
+  <script type="module" src="./src/main.js"></script>
+</body>
+</html>
