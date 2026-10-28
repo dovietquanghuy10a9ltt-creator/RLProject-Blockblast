@@ -17,16 +17,28 @@ export const SHAPES = Object.freeze([
   shape('line3-v', 'Ba ô dọc', [[0, 0], [1, 0], [2, 0]]),
   shape('line4-h', 'Bốn ô ngang', [[0, 0], [0, 1], [0, 2], [0, 3]]),
   shape('line4-v', 'Bốn ô dọc', [[0, 0], [1, 0], [2, 0], [3, 0]]),
+  shape('line5-h', 'Năm ô ngang', [[0, 0], [0, 1], [0, 2], [0, 3], [0, 4]]),
+  shape('line5-v', 'Năm ô dọc', [[0, 0], [1, 0], [2, 0], [3, 0], [4, 0]]),
   shape('square2', 'Vuông nhỏ', [[0, 0], [0, 1], [1, 0], [1, 1]]),
   shape('square3', 'Vuông lớn', [[0, 0], [0, 1], [0, 2], [1, 0], [1, 1], [1, 2], [2, 0], [2, 1], [2, 2]]),
+  shape('rectangle-h', 'Chữ nhật ngang', [[0, 0], [0, 1], [0, 2], [1, 0], [1, 1], [1, 2]]),
+  shape('rectangle-v', 'Chữ nhật dọc', [[0, 0], [0, 1], [1, 0], [1, 1], [2, 0], [2, 1]]),
+  shape('corner-ne', 'Góc trên phải', [[0, 0], [0, 1], [1, 1]]),
   shape('corner-nw', 'Góc trên trái', [[0, 0], [0, 1], [1, 0]]),
   shape('corner-se', 'Góc dưới phải', [[0, 1], [1, 0], [1, 1]]),
+  shape('corner-sw', 'Góc dưới trái', [[0, 0], [1, 0], [1, 1]]),
   shape('ell-se', 'Chữ L phải', [[0, 0], [1, 0], [2, 0], [2, 1]]),
   shape('ell-sw', 'Chữ L trái', [[0, 1], [1, 1], [2, 0], [2, 1]]),
+  shape('ell-ne', 'Chữ L trên phải', [[0, 0], [0, 1], [1, 0], [2, 0]]),
+  shape('ell-nw', 'Chữ L trên trái', [[0, 0], [0, 1], [1, 1], [2, 1]]),
   shape('tee-down', 'Chữ T xuống', [[0, 0], [0, 1], [0, 2], [1, 1]]),
   shape('tee-up', 'Chữ T lên', [[0, 1], [1, 0], [1, 1], [1, 2]]),
+  shape('tee-right', 'Chữ T phải', [[0, 0], [1, 0], [1, 1], [2, 0]]),
+  shape('tee-left', 'Chữ T trái', [[0, 1], [1, 0], [1, 1], [2, 1]]),
   shape('zigzag-h', 'Zíc zắc ngang', [[0, 1], [0, 2], [1, 0], [1, 1]]),
+  shape('zigzag-v', 'Zíc zắc dọc', [[0, 0], [1, 0], [1, 1], [2, 1]]),
   shape('zagzig-h', 'Chữ Z ngang', [[0, 0], [0, 1], [1, 1], [1, 2]]),
+  shape('zagzig-v', 'Chữ Z dọc', [[0, 1], [1, 0], [1, 1], [2, 0]]),
   shape('big-corner', 'Góc lớn', [[0, 0], [1, 0], [2, 0], [2, 1], [2, 2]]),
 ]);
 
@@ -166,21 +178,13 @@ function randomUnit(rng) {
   return Number.isFinite(value) ? Math.max(0, Math.min(0.999999999, value)) : 0.5;
 }
 
-const recentShapeIds = [];
-
-export function resetShapeHistory() {
-  recentShapeIds.length = 0;
-}
-
-function chooseWeighted(candidates, rng, chosenShapeIds, emptyCount, shapeWeights = {}) {
+function chooseWeighted(candidates, rng, chosenShapeIds, emptyCount, shapeWeights) {
   const weights = candidates.map(({ definition }) => {
     const count = definition.cells.length;
     let weight = count === 1 ? 0.25 : count === 2 ? 0.65 : 1;
     if (count >= 6 && emptyCount > 36) weight *= 1.6;
     if (chosenShapeIds.has(definition.id)) weight *= 0.35;
-    const recent = recentShapeIds.filter((id) => id === definition.id).length;
-    if (recent > 0) weight *= Math.pow(0.55, recent);
-    weight *= shapeWeights?.[definition.id] ?? 1;
+    weight *= shapeWeights[definition.id] ?? 1;
     return weight;
   });
   let target = randomUnit(rng) * weights.reduce((total, weight) => total + weight, 0);
@@ -222,8 +226,6 @@ export function generateHand(board, rng = Math.random, config = {}) {
     };
     hand.push(piece);
     chosenShapeIds.add(piece.shapeId);
-    recentShapeIds.push(piece.shapeId);
-    if (recentShapeIds.length > 12) recentShapeIds.shift();
 
     // Prefer clear opportunities and leave space around compact placements.
     let bestBoard = simulation;

@@ -144,6 +144,21 @@ Hoặc bắt đầu từ 5 hình:
 .\.venv\Scripts\python.exe -m blocknova_rl.train --steps 100000 --shape-count 5 --output outputs/ppo-five
 ```
 
+### Huấn luyện theo lộ trình tăng dần độ khó (Curriculum Learning)
+
+Vì không gian quan sát (khung 5×5) và không gian hành động (`Discrete(192)`) độc lập với số loại khối, ta có thể dùng `--pretrained` để chuyển giao kiến thức (transfer learning) từ các hình dễ sang toàn bộ hình phức tạp:
+
+```powershell
+# Giai đoạn 1: 5 khối cơ bản (nền tảng tạo combo, dọn hàng)
+.\.venv\Scripts\python.exe -m blocknova_rl.train --steps 100000 --shape-count 5 --output outputs/curriculum-five
+
+# Giai đoạn 2: Nạp checkpoint giai đoạn 1, mở rộng lên 18 khối cân bằng
+.\.venv\Scripts\python.exe -m blocknova_rl.train --steps 150000 --shape-count 18 --pretrained outputs/curriculum-five/final.zip --learning-rate 0.00015 --output outputs/curriculum-eighteen
+
+# Giai đoạn 3: Nạp checkpoint giai đoạn 2, mở rộng lên trọn bộ 30 khối
+.\.venv\Scripts\python.exe -m blocknova_rl.train --steps 200000 --shape-count 30 --pretrained outputs/curriculum-eighteen/final.zip --learning-rate 0.0001 --output outputs/curriculum-full
+```
+
 Đánh giá và so với random hợp lệ trên seed khác:
 
 ```powershell
