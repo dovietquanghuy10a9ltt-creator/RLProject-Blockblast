@@ -1,8 +1,9 @@
-"""Train a first MaskablePPO policy: python -m blocknova_rl.train."""
+"""Train a MaskablePPO policy with MLP or 2D Spatial CNN: python -m blocknova_rl.train."""
 import argparse
 from importlib.metadata import version
 from pathlib import Path
 
+import torch
 from sb3_contrib import MaskablePPO
 from sb3_contrib.common.maskable.callbacks import MaskableEvalCallback
 from stable_baselines3.common.env_checker import check_env
@@ -11,6 +12,7 @@ from stable_baselines3.common.utils import set_random_seed
 
 from .common import add_env_arguments, env_kwargs, frozen_env_kwargs, write_json
 from .env import BlockNovaEnv
+from .models import BlockNovaCNNExtractor
 
 
 def main():
@@ -20,6 +22,9 @@ def main():
     parser.add_argument("--rollout-steps", type=int, default=256)
     parser.add_argument("--eval-freq", type=int, default=5000)
     parser.add_argument("--eval-episodes", type=int, default=5)
+    parser.add_argument("--policy-type", choices=["mlp", "cnn"], default="mlp", help="Neural architecture: flat 'mlp' or spatial 2D 'cnn'")
+    parser.add_argument("--features-dim", type=int, default=256, help="Feature extractor embedding size for CNN policy")
+    parser.add_argument("--device", default="auto", help="Compute device: auto, cpu, or cuda")
     parser.add_argument("--pretrained", type=Path, default=None, help="Path to checkpoint model zip to fine-tune from")
     parser.add_argument("--learning-rate", type=float, default=None, help="Learning rate (default: 3e-4 for scratch, or preserve/override for pretrained)")
     parser.add_argument("--output", type=Path, default=Path("outputs/ppo"))
@@ -32,12 +37,19 @@ def main():
         parser.error("Output directory is not empty; choose a new --output to preserve earlier runs")
     args.output.mkdir(parents=True, exist_ok=True)
     set_random_seed(args.seed)
+
+    device = "cuda" if (args.device == "auto" and torch.cuda.is_available()) or args.device == "cuda" else "cpu"
+    print(f"Using device: {device} | Policy architecture: {args.policy_type.upper()}")
+
     with BlockNovaEnv(**env_kwargs(args), reward_scale=100.0) as raw_env:
         check_env(raw_env)
         frozen = frozen_env_kwargs(raw_env)
         write_json(args.output / "run.json", {
             "env": frozen, "seed": args.seed, "requested_steps": args.steps,
             "rollout_steps": args.rollout_steps, "gamma": 0.995,
+            "policy_type": args.policy_type,
+            "features_dim": args.features_dim if args.policy_type == "cnn" else None,
+            "device": device,
             "pretrained": str(args.pretrained) if args.pretrained else None,
             "learning_rate": args.learning_rate,
             "game_spec": raw_env.game_spec,
@@ -56,17 +68,26 @@ def main():
                 custom_objects = {}
                 if args.learning_rate is not None:
                     custom_objects["learning_rate"] = args.learning_rate
-                model = MaskablePPO.load(args.pretrained, env=env, device="cpu", custom_objects=custom_objects)
+                model = MaskablePPO.load(args.pretrained, env=env, device=device, custom_objects=custom_objects)
                 model.set_random_seed(args.seed)
                 if args.learning_rate is not None:
                     model.learning_rate = args.learning_rate
             else:
                 lr = args.learning_rate if args.learning_rate is not None else 3e-4
+                if args.policy_type == "cnn":
+                    policy_kwargs = {
+                        "features_extractor_class": BlockNovaCNNExtractor,
+                        "features_extractor_kwargs": {"features_dim": args.features_dim},
+                        "net_arch": {"pi": [128], "vf": [128]},
+                    }
+                else:
+                    policy_kwargs = {"net_arch": {"pi": [128, 128], "vf": [128, 128]}}
+
                 model = MaskablePPO(
                     "MultiInputPolicy", env, learning_rate=lr,
                     n_steps=args.rollout_steps, batch_size=min(64, args.rollout_steps),
-                    gamma=0.995, policy_kwargs={"net_arch": {"pi": [128, 128], "vf": [128, 128]}},
-                    seed=args.seed, device="cpu", verbose=1,
+                    gamma=0.995, policy_kwargs=policy_kwargs,
+                    seed=args.seed, device=device, verbose=1,
                 )
             model.learn(total_timesteps=args.steps, callback=callback, reset_num_timesteps=True)
             model.save(args.output / "final")
@@ -76,3 +97,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+

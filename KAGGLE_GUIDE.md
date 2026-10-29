@@ -39,7 +39,7 @@ node -v
 
 **Nếu dùng GitHub:**
 ```bash
-!git clone https://github.com/<YOUR_USERNAME>/<YOUR_REPO>.git /kaggle/working/blockblast
+!git clone -b dovietquanghuy https://github.com/dovietquanghuy10a9ltt-creator/RLProject-Blockblast.git /kaggle/working/blockblast
 %cd /kaggle/working/blockblast
 ```
 
