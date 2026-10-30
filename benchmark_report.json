@@ -1,0 +1,89 @@
+{
+  "episodes": 20,
+  "base_seed": 100000,
+  "deterministic": true,
+  "models": {
+    "random": {
+      "n": 20,
+      "mean_score": 1017.0,
+      "median_score": 990.0,
+      "std_score": 504.4444573253985,
+      "sem_score": 112.79720974525827,
+      "ci_95": [
+        806.5,
+        1211.5
+      ],
+      "min_score": 310.0,
+      "max_score": 2050.0,
+      "p10": 410.0,
+      "p25": 590.0,
+      "p75": 1370.0,
+      "p90": 1688.0000000000002,
+      "p95": 1860.0000000000002,
+      "mean_moves": 17.15,
+      "early_death_count": 9,
+      "early_death_rate": 45.0,
+      "long_game_count": 0,
+      "long_game_rate": 0.0
+    },
+    "curriculum-full": {
+      "n": 20,
+      "mean_score": 1416.5,
+      "median_score": 1250.0,
+      "std_score": 939.1444875103365,
+      "sem_score": 209.99909147673145,
+      "ci_95": [
+        1026.5,
+        1864.5
+      ],
+      "min_score": 320.0,
+      "max_score": 4010.0,
+      "p10": 534.0,
+      "p25": 792.5,
+      "p75": 1727.5,
+      "p90": 2460.0000000000014,
+      "p95": 3307.0000000000005,
+      "mean_moves": 20.3,
+      "early_death_count": 6,
+      "early_death_rate": 30.0,
+      "long_game_count": 0,
+      "long_game_rate": 0.0
+    },
+    "cnn-full": {
+      "n": 20,
+      "mean_score": 2353.5,
+      "median_score": 1645.0,
+      "std_score": 1916.840259110646,
+      "sem_score": 428.6185121379715,
+      "ci_95": [
+        1537.0,
+        3253.0
+      ],
+      "min_score": 470.0,
+      "max_score": 6430.0,
+      "p10": 569.0,
+      "p25": 897.5,
+      "p75": 2927.5,
+      "p90": 5805.0,
+      "p95": 5964.5,
+      "mean_moves": 30.15,
+      "early_death_count": 5,
+      "early_death_rate": 25.0,
+      "long_game_count": 4,
+      "long_game_rate": 20.0
+    }
+  },
+  "pairwise": {
+    "cnn-full_vs_curriculum-full": {
+      "mean_delta": 937.0,
+      "sem_delta": 521.2753086118898,
+      "ci_95": [
+        -49.5,
+        1937.5
+      ],
+      "significant_p05": false,
+      "t_stat": 1.7975146424931354,
+      "bootstrap_p_val": 0.063
+    }
+  }
+}
